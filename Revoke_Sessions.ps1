@@ -1,4 +1,4 @@
-
+# Revokes sessions of a specified user
 
 param(
     [Parameter(Mandatory=$true)]
@@ -6,7 +6,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-# Load modules (install if missing), connect , v1.0 profile
+# Load modules (install if missing)
 if (-not (Get-Module Microsoft.Graph.Authentication -ListAvailable)) {
     Install-Module Microsoft.Graph.Authentication 
 }
@@ -29,4 +29,5 @@ if (-not $u) { throw "User '$User' not found." }
 
 Write-Host "Revoking sign-in sessions for $($u.DisplayName) <$($u.UserPrincipalName)>n..." -ForegroundColor Cyan
 Revoke-MgUserSignInSession -UserId $u.Id | Out-Null
+
 Write-Host "Done. Refresh tokens invalidated; new sign-in required." -ForegroundColor Green
