@@ -30,18 +30,19 @@ if (-not (Get-MgContext)) {
 # --- Password generator (complexity + length) ---
 function New-StrongPassword {
   param([ValidateRange(16,128)][int]$Len = 20)
-  # Ensure at least one of each class
-  $upper = -join ((65..90)  | Get-Random -Count 2 | ForEach-Object {[char]$_})
-  $lower = -join ((97..122) | Get-Random -Count 4 | ForEach-Object {[char]$_})
-  $digit = -join ((48..57)  | Get-Random -Count 2 | ForEach-Object {[char]$_})
+
   $symbols = '!@#$%^&*()-_=+[]{}|;:,.?'
-  $sym   = -join (1..2 | ForEach-Object { $symbols[(Get-Random -Min 0 -Max $symbols.Length)] })
+  $upper   = (1..2 | % { [char](Get-Random -Minimum 65 -Maximum 91) })
+  $lower   = (1..4 | % { [char](Get-Random -Minimum 97 -Maximum 123) })
+  $digit   = (1..2 | % { [char](Get-Random -Minimum 48 -Maximum 58) })
+  $sym     = (1..2 | % { $symbols[(Get-Random -Min 0 -Max $symbols.Length)] })
+  $need    = $Len - ($upper.Count + $lower.Count + $digit.Count + $sym.Count)
+  $pool    = ((33..126 | % {[char]$_}) | ? { $_ -ne ' ' })
 
-  $need = $Len - ($upper.Length + $lower.Length + $digit.Length + $sym.Length)
-  $pool = ((33..126) | ForEach-Object {[char]$_}) -ne ' '               # printable, no spaces
-  $rest = -join (1..$need | ForEach-Object { $pool | Get-Random })
+  $rest = (1..$need | % { $pool[(Get-Random -Min 0 -Max $pool.Count)] })
+  $chars = @($upper + $lower + $digit + $sym + $rest) | Sort-Object {Get-Random}
 
-  ($upper + $lower + $digit + $sym + $rest).ToCharArray() | Sort-Object {Get-Random} | -join ''
+  [string]::Join('', $chars)
 }
 
 foreach ($User in $Users) {
